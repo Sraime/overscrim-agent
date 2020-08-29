@@ -1,0 +1,20 @@
+frennetixAujourd’hui à 22:33
+ping ping
+ping
+/find
+/publish
+/request
+/accept
+/cancel
+/proposenewtime
+frennetixAujourd’hui à 22:41
+/mycalendar
+SobrazAujourd’hui à 22:47
+!scrim-find [EU|NA] [PC|SWITCH] [SR] HH:MM
+exemple: !scrim-find EU PC 2000 21:00
+frennetixAujourd’hui à 22:49
+/myoldscrim
+frennetixAujourd’hui à 23:05
+/help
+message d'accueil
+/setreminder
