@@ -10,28 +10,28 @@
 // !scrim-setreminder\tget help
 // !scrim-accept\tget help`);
 // };
-const Discord = require("discord.js");
 
 module.exports = {
   name: "help",
   description: "List all commands or info about a specific command.",
-  usage: "<command name>",
+  usage: "<command>",
   execute(bot, message, args) {
     // inside a command, event listener, etc.
-    const embed = {
-      color: 0xeb2ad1,
-      title: "OverScrim - Command helper",
-      fields: [],
-      footer: {
-        text: "https://github.com/Sraime/overscrim-agent",
-      },
-    };
-    bot.commands.forEach((element) => {
-      embed.fields.push({
-        name: "**!scrim-" + element.name + "** " + element.usage,
-        value: "*" + element.description + "*",
-      });
+    const commands = [];
+    commands.push("**Overscrim Agent - command lines information**");
+    commands.push("```Markdown");
+    bot.commands.forEach((command) => {
+      commands.push(
+        "!scrim-" +
+          command.name +
+          " " +
+          (command?.usage || "") +
+          " - " +
+          command.description +
+          ""
+      );
     });
-    message.channel.send({ embed });
+    commands.push("```");
+    message.channel.send(commands.join("\n"));
   },
 };

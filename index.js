@@ -8,6 +8,7 @@ let commands = [
   require("./commands/find"),
   require("./commands/register"),
   require("./commands/help"),
+  require("./commands/info"),
 ];
 
 const mongoDB = `mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
@@ -28,6 +29,26 @@ bot.commands = commands;
 
 bot.on("ready", () => {
   console.info(`Logged in as ${bot.user.tag}!scrim-`);
+});
+
+bot.on("guildCreate", (guild) => {
+  console.log("Joined a new guild: " + guild.name);
+  console.log("Joined a new guild: " + guild);
+  let defaultChannel = "";
+  guild.channels.forEach((channel) => {
+    console.log(channel);
+    if (channel.type == "text" && defaultChannel == "") {
+      if (channel.permissionsFor(guild.me).has("SEND_MESSAGES")) {
+        defaultChannel = channel;
+      }
+    }
+  });
+  const command = commands.filter((c) => c.name === "info")[0];
+  command.execute(bot, defaultChannel, []);
+});
+
+bot.on("guildDelete", (guild) => {
+  console.log("Left a guild: " + guild.name);
 });
 
 bot.on("message", (msg) => {
