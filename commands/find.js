@@ -1,68 +1,111 @@
-const Enums = require("../enums");
+const Enums = require("../tools/enums");
 const ScrimRequestModel = require("../models/scrim-request.model");
-
-function DateToString(date) {
-  return `${date.getFullYear()}-${
-    date.getMonth() + 1
-  }-${date.getDate()} ${date.getHours()}:${("0" + date.getMinutes()).slice(
-    -2
-  )} `;
-}
+const EnglishDateValidator = require("../arg-validators/english-date-validator");
+const Utils = require("../tools/utils");
 
 module.exports = {
   name: "find",
-  description: "Find a scrim based on region, platform, SR and date.",
-  usage: "<region> <platform> <sr> <YYYY-MM-JJ>",
-  numberOfArguments: 4,
-  execute(bot, message, args) {
-    //'[EU|NA|AS] [PC|SWITCH] [SR] mm/dd'
-    const region = args[0];
-    const platform = args[1];
-    const sr = parseInt(args[2], 10);
-    const day = args[3];
-
-    if (Enums.PLATFORM.indexOf(platform) === -1) {
-      throw new Error(
-        "Invalid platform, the available platforms are: " +
-          Enums.PLATFORM.join(" | ")
-      );
-    }
-    if (Enums.REGION.indexOf(region) === -1) {
-      throw new Error(
-        "Invalid region, the available regions are: " + Enums.REGION.join(" | ")
-      );
-    }
-    if (isNaN(sr) || (0 <= sr && sr >= 5000)) {
-      throw new Error(
-        "Invalid SR number, please insert a number between 0 and 5000"
-      );
-    }
-    const requestedDatetime = new Date(day + "T00:00:00");
-    if (!isFinite(requestedDatetime)) {
-      throw new Error("Invalid date, expected format YYYY-MM-JJ");
-    }
-
-    const scrims = ScrimRequestModel.find()
-      .then((foundScrims) => {
-        if (foundScrims.length === 0) {
-          message.channel.send(
-            `No scrim found for parameters ${region}, ${platform}, ${sr}, ${day}`
-          );
+  name: "fublishind",
+  description: "Register your scrim to be contacted by other teams.",
+  parameters: [
+    {
+      name: "region",
+      required: true,
+      regex: "^(" + Enums.REGION.join("|") + ")$",
+      regexHelper: Enums.REGION.join(", ")
+    },
+    {
+      name: "platform",
+      required: true,
+      regex: "^(" + Enums.PLATFORM.join("|") + ")$",
+      regexHelper: Enums.PLATFORM.join(", ")
+    },
+    {
+      name: "sr-min",
+      required: true,
+      regex:
+        "^0*([0-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-4][0-9]{3}|5000)$", // between 0 and 5000
+      regexHelper: "between 0 and 5000"
+    },
+    {
+      name: "sr-max",
+      required: true,
+      regex:
+        "^0*([0-9]|[1-8][0-9]|9[0-9]|[1-8][0-9]{2}|9[0-8][0-9]|99[0-9]|[1-4][0-9]{3}|5000)$", // between 0 and 5000
+      regexHelper: "between 0 and 5000"
+    },
+    {
+      name: "day",
+      required: true,
+      validators: [
+        {
+          validator: EnglishDateValidator,
+          message: "Invalid date, YYYY-MM-DD format expected."
         }
-        const scrimsRender = [];
-        foundScrims.forEach((scrim) => {
-          scrimsRender.push(
-            `Team **${scrim.teamName}** - ${scrim.region}, ${scrim.platform}, ${
-              scrim.srmin
-            }-${scrim.srmax}, ${DateToString(scrim.datetime)} - contact ${
-              scrim.discordOwnerTag
-            }`
-          );
-        });
-        message.channel.send(scrimsRender.join("\n"));
-      })
-      .catch((e) => {
-        throw new Error(e.message);
+      ],
+      isDate: true
+    },
+    {
+      name: "time",
+      required: true,
+      regex: "^([01]?[0-9]|2[0-3]):[0-5][0-9]$",
+      regexHelper: "HH:MM"
+    },
+    {
+      name: "teamName",
+      required: true,
+      regex: "^[a-zA-Z0-9]*$",
+      regexHelper: "Your team's name (no spaces)"
+    }
+  ],
+  execute(bot, message, args) {
+    const nsr = new ScrimRequestModel({
+      teamName: args[0],
+      region: args[1],
+      platform: args[2],
+      srmin: args[3],
+      srmax: args[4],
+      datetime: new Date(args[5] + "T" + args[6] + ":00"),
+      discordOwnerId: message.author.id,
+      discordOwnerTag: message.author.tag
+    });
+    const errors = nsr.validateSync();
+    if (errors) {
+      console.log(errors.message);
+      throw new Error(errors.message);
+    }
+    nsr.save().then(() => {
+      var start = new Date(args[5]);
+      var end = new Date(args[5]);
+      end.setHours(23, 59, 59, 99);
+      ScrimRequestModel.find({
+        region: args[1],
+        platform: args[2],
+        $and: [
+          { srmin: { $lte: Number(args[3]) } },
+          { srmax: { $gte: Number(args[4]) } }
+        ],
+        datetime: {
+          $gte: start.toISOString(),
+          $lte: end.toISOString()
+        }
+      }).then(foundScrims => {
+        if (foundScrims.length == 0) {
+          message.channel.send(`No scrim registered for those parameters`);
+        } else {
+          message.channel.send(Utils.generateScrimDisplay(foundScrims));
+          const filter = m => m.content.includes("discord");
+          const collector = message.channel.createMessageCollector(filter, {
+            time: 15000
+          });
+          collector.on("collect", m => {
+            console.log(`Collected ${m.content}`);
+            collector.end();
+          });
+        }
       });
-  },
+      // NOP message.channel.send("Scrim registered
+      // TODO: afficher la list des scrim correspond à la recherms
+    });
+  }
 };

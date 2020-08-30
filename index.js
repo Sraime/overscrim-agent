@@ -3,12 +3,18 @@ const Discord = require("discord.js");
 const bot = new Discord.Client();
 const TOKEN = process.env.TOKEN;
 const mongoose = require("mongoose");
+const MessageHandler = require("./handlers/message-handler");
+const GuildJoinHandler = require("./handlers/guild-join-handler");
+const GuildLeaveHandler = require("./handlers/guild-leave-handler");
+const ServerReadyHandler = require("./handlers/server-ready-handler");
 
 let commands = [
   require("./commands/find"),
-  require("./commands/register"),
+  require("./commands/publish"),
   require("./commands/help"),
   require("./commands/info"),
+  require("./commands/agenda"),
+  require("./commands/propose")
 ];
 
 const mongoDB = `mongodb://${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`;
@@ -17,70 +23,21 @@ mongoose
   .then(() => {
     console.log("Connection to database has been established successfully.");
   })
-  .catch((err) => {
+  .catch(err => {
+    console.error(err);
     logger.log({
       level: "info",
-      message: `Unable to connect to the database ${err}`,
+      message: `Unable to connect to the database ${err}`
     });
   });
 
 bot.login(TOKEN);
 bot.commands = commands;
 
-bot.on("ready", () => {
-  console.info(`Logged in as ${bot.user.tag}!scrim-`);
-});
+bot.on("ready", ServerReadyHandler(bot));
 
-bot.on("guildCreate", (guild) => {
-  console.log("Joined a new guild: " + guild.name);
-  console.log("Joined a new guild: " + guild);
-  let defaultChannel = "";
-  guild.channels.forEach((channel) => {
-    console.log(channel);
-    if (channel.type == "text" && defaultChannel == "") {
-      if (channel.permissionsFor(guild.me).has("SEND_MESSAGES")) {
-        defaultChannel = channel;
-      }
-    }
-  });
-  const command = commands.filter((c) => c.name === "info")[0];
-  command.execute(bot, defaultChannel, []);
-});
+bot.on("guildCreate", GuildJoinHandler(bot));
 
-bot.on("guildDelete", (guild) => {
-  console.log("Left a guild: " + guild.name);
-});
+bot.on("guildDelete", GuildLeaveHandler(bot));
 
-bot.on("message", (msg) => {
-  const parsedCmd = msg.content.split(" ");
-  let commandKey;
-  if (msg.author.id === bot.user.id || !parsedCmd[0].startsWith("!scrim-")) {
-    return;
-  }
-
-  commandKey = parsedCmd[0].replace("!scrim-", "");
-  const args = parsedCmd.splice(1);
-  console.log(msg.author.tag, commandKey, args);
-
-  try {
-    //verify if command exist
-    const command = commands.filter((c) => c.name === commandKey)[0];
-    if (!command) {
-      throw new Error("Invalid command");
-    }
-    if (
-      command.numberOfArguments &&
-      command.numberOfArguments !== args.length
-    ) {
-      let reply = `You didn't provide correct arguments, ${msg.author}!
-      ${command.numberOfArguments} expected, got ${args.length}`;
-      if (command.usage) {
-        reply += `\nThe proper usage would be: \`!scrim-${command.name} ${command.usage}\``;
-      }
-      throw new Error(reply);
-    }
-    command.execute(bot, msg, args);
-  } catch (error) {
-    msg.channel.send(error.message);
-  }
-});
+bot.on("message", MessageHandler(bot));

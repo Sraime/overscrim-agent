@@ -10,11 +10,16 @@
 // !scrim-setreminder\tget help
 // !scrim-accept\tget help`);
 // };
+const Enums = require("../tools/enums");
 
 module.exports = {
   name: "help",
   description: "List all commands or info about a specific command.",
-  usage: "<command>",
+  parameters: [{
+    name: "command",
+    required: false,
+    regex: '^('+ Enums.COMMANDS.join('|') +')$'
+  }],
   execute(bot, message, args) {
     // inside a command, event listener, etc.
     const commands = [];
@@ -25,7 +30,7 @@ module.exports = {
         "!scrim-" +
           command.name +
           " " +
-          (command?.usage || "") +
+          (command.usage || "") +
           " - " +
           command.description +
           ""
@@ -35,3 +40,4 @@ module.exports = {
     message.channel.send(commands.join("\n"));
   },
 };
+
