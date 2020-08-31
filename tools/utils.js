@@ -12,7 +12,7 @@ module.exports = {
   },
   showParamUsage(message, commandName, declaredParams) {
     message = "!scrim-" + commandName;
-    declaredParams.forEach(declaredParam => {
+    declaredParams.forEach((declaredParam) => {
       message += " <" + declaredParam.name + ">";
     });
     message.channel.send(declaredParams.join("\n"));
@@ -43,7 +43,7 @@ module.exports = {
           );
         }
       } else {
-        regex = RegExp(declaredParams[i].regex);
+        var regex = RegExp(declaredParams[i].regex);
         if (!regex.test(params[i])) {
           throw new Error(
             "Invalid input for parameter " +
@@ -60,7 +60,7 @@ module.exports = {
       return `No scrim registered`;
     }
     const scrimsRender = [];
-    scrims.forEach(scrim => {
+    scrims.forEach((scrim) => {
       scrimsRender.push(
         `Team **${scrim.teamName}** - ${scrim.region}, ${scrim.platform}, ${
           scrim.srmin
@@ -80,5 +80,5 @@ module.exports = {
       "**Candidate to a scrim with `!scrim-candidate <ID>` or publish  yours with `!scrim-publish NA PS4 100 500 2020-03-28 <HH:MM> <TEAMNAME>`**"
     );
     return scrimsRender.join("\n");
-  }
+  },
 };

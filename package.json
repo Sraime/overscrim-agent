@@ -12,6 +12,7 @@
   "author": "Michiel Mulders",
   "license": "ISC",
   "dependencies": {
+    "@types/mongoose": "^5.7.36",
     "discord-akairo": "^8.1.0",
     "discord.js": "^12.2.0",
     "dotenv": "^8.2.0",

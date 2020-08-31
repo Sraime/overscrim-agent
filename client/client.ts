@@ -1,11 +1,11 @@
 import { AkairoClient, ListenerHandler, CommandHandler } from "discord-akairo";
-import { token, prefix, owners } from "../config";
+import { token, prefix, owners } from "../config/config";
 import { Message } from "discord.js";
 import { join } from "path";
 
 export class OverScrimClient extends AkairoClient {
   public listenerHandler: ListenerHandler = new ListenerHandler(this, {
-    directory: join(__dirname, "..", "listeners")
+    directory: join(__dirname, "..", "listeners"),
   });
 
   public commandHandler: CommandHandler = new CommandHandler(this, {
@@ -27,11 +27,11 @@ export class OverScrimClient extends AkairoClient {
           "You exceeded the maximum amount of tries, this command has now been cncelled",
         cancel: "This command has been cancelled",
         retries: 3,
-        time: 3e4
+        time: 3e4,
       },
-      otherwise: ""
+      otherwise: "",
     },
-    ignorePermissions: owners
+    ignorePermissions: owners,
   });
 
   public constructor() {
@@ -43,7 +43,7 @@ export class OverScrimClient extends AkairoClient {
     this.listenerHandler.setEmitters({
       commandHandler: this.commandHandler,
       listenerHandler: this.listenerHandler,
-      process
+      process,
     }),
       this.commandHandler.loadAll();
     this.listenerHandler.loadAll();
