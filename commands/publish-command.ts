@@ -1,23 +1,22 @@
-import { Argument } from "discord-akairo";
+import { Argument, Command } from "discord-akairo";
 import { Message } from "discord.js";
 import { Platform } from "../models/platform-enum";
 import { Region } from "../models/region-enum";
 import { ScrimService } from "../services/scrim-service";
-import { ScrimListFormater } from "../text-formaters/scrim-list-formater";
 import { SelfDescribedCommand } from "./self-described-command";
 
 const regionList = Object.values(Region);
 const platformList = Object.values(Platform);
 
-export default class FindCommand extends SelfDescribedCommand {
+export default class PublishCommand extends SelfDescribedCommand {
   public constructor() {
-    super("find", {
-      aliases: ["find"],
+    super("publish", {
+      aliases: ["publish"],
       category: "Public Commands",
       description: {
-        content: "Get information about this bot.",
-        usage: "find",
-        example: ["find"],
+        content: "Publish a new scrim to be contacted by other teams",
+        usage: "publish",
+        example: ["publish"],
       },
       ratelimit: 3,
       args: [
@@ -52,28 +51,39 @@ export default class FindCommand extends SelfDescribedCommand {
           type: "date",
           otherwise: "Invalid date",
         },
+        {
+          id: "time",
+          type: "time",
+          otherwise: "Invalid time",
+        },
+        {
+          id: "teamName",
+          type: "string",
+          otherwise: "Invalid team name.",
+        },
       ],
     });
   }
 
   async exec(message: Message, args: any): Promise<Message> {
     if (!message.util) throw new Error("undefined options");
+    const datetime: Date = args.date;
+    datetime.setHours(args.time.hours);
+    datetime.setMinutes(args.time.minutes);
     try {
-      const scrims = await ScrimService.getFilteredScrims({
+      await ScrimService.createScrim({
         region: args.region,
         platform: args.platform,
         srmin: args.srmin,
         srmax: args.srmax,
-        date: args.date,
+        datetime: datetime,
+        owner: {
+          id: message.author.id,
+          tag: message.author.username + "#" + message.author.discriminator,
+        },
+        teamName: args.teamName,
       });
-
-      if (scrims.length == 0) {
-        return message.util.send(`No scrim registered for those parameters`);
-      } else {
-        console.log("many many");
-        const scrimListFormater = new ScrimListFormater();
-        return message.util.send(scrimListFormater.formatData(scrims));
-      }
+      return message.util.send("scrim created !");
     } catch (e) {
       console.log(e);
       return message.util.send("invalid arguments");

@@ -1,6 +1,9 @@
 import { Platform } from "../models/platform-enum";
 import { Region } from "../models/region-enum";
-import { ScrimRequest } from "../models/scrim-request.model";
+import {
+  CreateScrimRequest,
+  ScrimRequest,
+} from "../models/scrim-request.model";
 import ScrimRequestModel from "../models/scrim-request.model";
 
 export interface ScrimsFilterOptions {
@@ -29,5 +32,16 @@ export abstract class ScrimService {
         $lte: end.toISOString(),
       },
     }).exec();
+  }
+
+  static getOwnedScrims(discordId: string): Promise<ScrimRequest[]> {
+    return ScrimRequestModel.find({
+      discordOwnerId: discordId,
+    }).exec();
+  }
+
+  static createScrim(scrimData: CreateScrimRequest): Promise<ScrimRequest> {
+    const model = new ScrimRequestModel(scrimData);
+    return model.save();
   }
 }

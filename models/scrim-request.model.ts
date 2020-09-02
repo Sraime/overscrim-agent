@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from "mongoose";
 import { Platform } from "./platform-enum";
 import { Region } from "./region-enum";
 
-export interface DiscordUser extends Document {
+export interface DiscordUser {
   id: string;
   tag: string;
 }
@@ -17,6 +17,16 @@ const DiscordUserSchema: Schema = new Schema({
     required: true,
   },
 });
+
+export interface CreateScrimRequest {
+  teamName: string;
+  region: Region;
+  platform: Platform;
+  srmin: number;
+  srmax: number;
+  owner: DiscordUser;
+  datetime: any;
+}
 
 export interface ScrimRequest extends Document {
   teamName: string;

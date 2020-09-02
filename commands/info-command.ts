@@ -1,7 +1,7 @@
-import { Command } from "discord-akairo";
 import { Message } from "discord.js";
+import { SelfDescribedCommand } from "./self-described-command";
 
-export default class InfoCommand extends Command {
+export default class InfoCommand extends SelfDescribedCommand {
   public constructor() {
     super("info", {
       aliases: ["info"],
