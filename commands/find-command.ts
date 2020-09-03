@@ -70,7 +70,6 @@ export default class FindCommand extends SelfDescribedCommand {
       if (scrims.length == 0) {
         return message.util.send(`No scrim registered for those parameters`);
       } else {
-        console.log("many many");
         const scrimListFormater = new ScrimListFormater();
         return message.util.send(scrimListFormater.formatData(scrims));
       }
