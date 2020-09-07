@@ -1,10 +1,9 @@
+import {
+  ScrimRequest,
+  CreateScrimRequest
+} from "../models/scrim-request.model";
 import { Platform } from "../models/platform-enum";
 import { Region } from "../models/region-enum";
-import {
-  CreateScrimRequest,
-  ScrimRequest,
-} from "../models/scrim-request.model";
-import ScrimRequestModel from "../models/scrim-request.model";
 
 export interface ScrimsFilterOptions {
   region: Region;
@@ -14,34 +13,8 @@ export interface ScrimsFilterOptions {
   date: Date;
 }
 
-export abstract class ScrimService {
-  static getFilteredScrims(
-    options: ScrimsFilterOptions
-  ): Promise<ScrimRequest[]> {
-    var end = new Date(options.date);
-    end.setHours(23, 59, 59, 99);
-    return ScrimRequestModel.find({
-      region: options.region,
-      platform: options.platform,
-      $and: [
-        { srmin: { $lte: options.srmin } },
-        { srmax: { $gte: options.srmax } },
-      ],
-      datetime: {
-        $gte: options.date.toISOString(),
-        $lte: end.toISOString(),
-      },
-    }).exec();
-  }
-
-  static getOwnedScrims(discordId: string): Promise<ScrimRequest[]> {
-    return ScrimRequestModel.find({
-      discordOwnerId: discordId,
-    }).exec();
-  }
-
-  static createScrim(scrimData: CreateScrimRequest): Promise<ScrimRequest> {
-    const model = new ScrimRequestModel(scrimData);
-    return model.save();
-  }
+export interface ScrimService {
+  getFilteredScrims(options: ScrimsFilterOptions): Promise<ScrimRequest[]>;
+  getOwnedScrims(discordId: string): Promise<ScrimRequest[]>;
+  createScrim(scrimData: CreateScrimRequest): Promise<ScrimRequest>;
 }

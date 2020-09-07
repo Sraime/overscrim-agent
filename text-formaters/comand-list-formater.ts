@@ -1,5 +1,4 @@
 import { CommandDescriber } from "../client/command-describer";
-import { SelfDescribedCommand } from "../commands/self-described-command";
 import { TextFormater } from "./text-formater";
 
 export class CommandListFormater implements TextFormater {
@@ -7,7 +6,7 @@ export class CommandListFormater implements TextFormater {
     const textLines: string[] = [];
     textLines.push("**Overscrim Agent - command lines information**");
     textLines.push("```Markdown");
-    commands.forEach((command) => {
+    commands.forEach(command => {
       textLines.push(
         "!scrim-" +
           command.aliases[0] +

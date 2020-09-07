@@ -10,12 +10,12 @@ export class MongooseConnector {
   public connect() {
     mongoose
       .connect("mongodb://" + this.host + ":" + this.port + "/" + this.dbName, {
-        useNewUrlParser: true,
+        useNewUrlParser: true
       })
       .then(() => {
         return console.info(`Successfully connected`);
       })
-      .catch((error) => {
+      .catch((error: any) => {
         console.error("Error connecting to database: ", error);
         return process.exit(1);
       });

@@ -15,9 +15,9 @@ export default class HelpCommand extends SelfDescribedCommand {
       description: {
         content: "Get the list of available commands.",
         usage: "help",
-        example: ["help"],
+        example: ["help"]
       },
-      ratelimit: 3,
+      ratelimit: 3
     });
   }
 

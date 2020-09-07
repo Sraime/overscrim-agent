@@ -2,9 +2,10 @@ import { Argument } from "discord-akairo";
 import { Message } from "discord.js";
 import { Platform } from "../models/platform-enum";
 import { Region } from "../models/region-enum";
-import { ScrimService } from "../services/scrim-service";
+import DbScrimService from "../services/db-scrim-service";
 import { ScrimListFormater } from "../text-formaters/scrim-list-formater";
 import { SelfDescribedCommand } from "./self-described-command";
+import { ScrimService } from "../services/scrim-service";
 
 const regionList = Object.values(Region);
 const platformList = Object.values(Platform);
@@ -17,7 +18,7 @@ export default class FindCommand extends SelfDescribedCommand {
       description: {
         content: "Get information about this bot.",
         usage: "find",
-        example: ["find"],
+        example: ["find"]
       },
       ratelimit: 3,
       args: [
@@ -27,7 +28,7 @@ export default class FindCommand extends SelfDescribedCommand {
             regionList.includes(str)
           ),
           otherwise:
-            "Invalid region, please use one of the following : " + regionList,
+            "Invalid region, please use one of the following : " + regionList
         },
         {
           id: "platform",
@@ -35,36 +36,39 @@ export default class FindCommand extends SelfDescribedCommand {
             platformList.includes(str)
           ),
           otherwise:
-            "Invalid region, please use one of the following : " + platformList,
+            "Invalid region, please use one of the following : " + platformList
         },
         {
           id: "srmin",
           type: Argument.range("number", 1000, 5000),
-          otherwise: "<srmin> must be a number between 1000 and 5000",
+          otherwise: "<srmin> must be a number between 1000 and 5000"
         },
         {
           id: "srmax",
           type: Argument.range("number", 1000, 5000),
-          otherwise: "<srmax> must be a number between 1000 and 5000",
+          otherwise: "<srmax> must be a number between 1000 and 5000"
         },
         {
           id: "date",
           type: "date",
-          otherwise: "Invalid date",
-        },
-      ],
+          otherwise: "Invalid date"
+        }
+      ]
     });
   }
 
   async exec(message: Message, args: any): Promise<Message> {
-    if (!message.util) throw new Error("undefined options");
+    if (!message.util || !this.client) throw new Error("undefined options");
+    const service: ScrimService = this.client.getService(
+      DbScrimService
+    ) as DbScrimService;
     try {
-      const scrims = await ScrimService.getFilteredScrims({
+      const scrims = await service.getFilteredScrims({
         region: args.region,
         platform: args.platform,
         srmin: args.srmin,
         srmax: args.srmax,
-        date: args.date,
+        date: args.date
       });
 
       if (scrims.length == 0) {
